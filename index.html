@@ -229,7 +229,7 @@
     <script>
         // ⚠️ [필독] 구글 Apps Script 배포 완료 후 획득한 주소를 여기에 딱 한 번 입력해 주세요!
         // 이 주소는 깃허브에 노출되어도 API 키가 숨겨져 있어서 보안상 완벽하게 안전합니다.
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbztIq2VzPQSknjitBv5338CnjKfDXHgyjiZAQ33wpXBgik4T1OjrOB2pJjgjq7ULk-C/exec";
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxmg6avhOkisxAAbcC-1iIEVP2y5fV4aOJskqqIaDzKqlgeKDqD4XlkT2aRKQjS12HR/exec";
 
         let map = null;
         let markers = [];
@@ -288,8 +288,13 @@
                 return;
             }
 
+            // ❌ 많은 사용자들이 범하는 오입력(스프레드시트 URL이나 에디터 URL 등) 사전 진단
             if (GAS_WEB_APP_URL === "여기에_구글_Apps_Script_URL_입력" || !GAS_WEB_APP_URL.startsWith("http")) {
                 showToast("index.html 파일 내부에 본인의 구글 Apps Script 배포 URL을 올바르게 기입해 주세요!", "error");
+                return;
+            }
+            if (!GAS_WEB_APP_URL.includes("/macros/s/") || !GAS_WEB_APP_URL.includes("/exec")) {
+                showToast("기입한 URL이 '웹 앱 배포 URL' 형식이 아닙니다. 끝이 /exec 로 끝나는 주소를 입력해 주셔야 합니다.", "error");
                 return;
             }
 
@@ -309,11 +314,14 @@
             try {
                 const response = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
+                    headers: { 'Content-Type': 'text/plain' }, // CORS preflight 회피를 위한 단순 요청 구조
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error("CORS_OR_NETWORK_ERROR");
+                if (!response.ok) {
+                    throw new Error("CORS_OR_NETWORK_ERROR");
+                }
+
                 const result = await response.json();
                 
                 if (result.status === "success") {
@@ -324,6 +332,7 @@
                 }
             } catch (err) {
                 console.error(err);
+                // 보다 세밀한 가이드를 위한 디버깅 팁 제공
                 showToast("중계 서버와의 통신에 실패했습니다. 배포 버전 업데이트 및 설정을 다시 한 번 점검해 보세요.", "error");
                 document.getElementById('placeholder').classList.remove('hidden');
             } finally {
