@@ -30,7 +30,38 @@
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col">
 
+    <!-- 토스트 컨테이너 -->
     <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-[1000] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- API 누락 안내 비주얼 모달 -->
+    <div id="api-modal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center gap-3 text-amber-500 mb-3">
+                <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+                <h3 class="font-bold text-slate-800 text-lg">서버 중계기 연결이 필요합니다</h3>
+            </div>
+            <div class="text-xs text-slate-600 space-y-3 leading-relaxed">
+                <p>깃허브 등 온라인에 배포된 환경에서는 사용자의 브라우저를 보호하고 API 탈취를 완벽히 막기 위해 **직접적인 API 호출이 보안상 제한**됩니다.</p>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <p class="font-bold text-slate-700 mb-1">💡 모바일 및 온라인 구동법</p>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-500">
+                        <li>좌측 폼의 <span class="font-bold text-emerald-600">구글 시트 기록 연동</span> 스위치를 활성화합니다.</li>
+                        <li>본인이 배포한 <span class="font-bold text-emerald-600">구글 Apps Script URL</span>을 입력합니다.</li>
+                        <li>다시 [AI 여행 경로 추천받기] 버튼을 누르면 정상 구동됩니다!</li>
+                    </ol>
+                </div>
+                <p class="text-slate-400">개발 단계 확인이나 즉각적인 체험을 원하시면 오른쪽의 <b>'데모 일정 로드하기'</b> 버튼을 사용해 지도 및 세부 작동을 확인할 수 있습니다.</p>
+            </div>
+            <div class="mt-5 flex gap-2">
+                <button onclick="closeApiModal()" class="flex-grow bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
+                    닫기
+                </button>
+                <button onclick="closeApiModal(); loadDemo();" class="flex-grow bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                    경주 데모 체험하기
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- 헤더 영역 -->
     <header class="main-gradient text-white shadow-lg sticky top-0 z-40">
@@ -41,7 +72,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight">대한민국 스마트 여행 가이드</h1>
-                    <p class="text-[10px] text-teal-100 font-light italic">구글 Gemini 3.1 & Imagen 4.0 인공지능 직접 소통형</p>
+                    <p class="text-[10px] text-teal-100 font-light italic">구글 Gemini 3.1 & Imagen 4.0 기반 실시간 솔루션</p>
                 </div>
             </div>
             <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm">
@@ -61,7 +92,6 @@
                     <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-sliders text-teal-600"></i> 여행 스타일 구성
                     </h2>
-                    <!-- 작동 모드 변경 탭 -->
                     <span id="mode-badge" class="text-[10px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-bold">
                         단독 AI 모드
                     </span>
@@ -80,7 +110,7 @@
                         <div id="gasUrlContainer" class="hidden mt-2 space-y-1">
                             <label class="block text-[10px] font-bold text-emerald-600 uppercase">구글 Apps Script 배포 URL</label>
                             <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec" 
-                                class="w-full px-3 py-2 rounded-lg border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs bg-white">
+                                class="w-full px-3 py-2.5 rounded-lg border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs bg-white">
                         </div>
                     </div>
 
@@ -156,7 +186,7 @@
                             <span>AI 특수 맞춤 지시</span>
                             <span class="text-[9px] text-teal-600">선택사항</span>
                         </label>
-                        <textarea id="customInstructions" rows="2" placeholder="예: 무릎이 불편하니 걷는 코스는 짧게!, 인스타 핫플 위주로 구성해줘 등" 
+                        <textarea id="customInstructions" rows="2" placeholder="예: 휠체어로 이동하기 편한 경사 없는 코스 위주로, 인스타 감성 핫플 식당 위주로 구성해줘 등" 
                             class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 transition resize-none"></textarea>
                     </div>
 
@@ -227,7 +257,7 @@
                     </div>
                 </div>
 
-                <!-- 신규 기능: AI 여행 기념 엽서 발행 패널 -->
+                <!-- AI 여행 기념 엽서 발행 패널 -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                         <div>
@@ -272,7 +302,7 @@
                     </div>
                 </div>
 
-                <!-- 신규 기능: 실시간 현지 가이드 AI 챗봇 대화방 -->
+                <!-- 실시간 현지 가이드 AI 챗봇 대화방 -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                         <div class="flex items-center gap-2">
@@ -394,6 +424,14 @@
             }).addTo(map);
         }
 
+        function openApiModal() {
+            document.getElementById('api-modal').classList.remove('hidden');
+        }
+
+        function closeApiModal() {
+            document.getElementById('api-modal').classList.add('hidden');
+        }
+
         // 메인 가이드 호출 엔진 (단독 AI 또는 Apps Script 프록시 연동)
         async function requestGuide() {
             const region = document.getElementById('targetRegion').value.trim();
@@ -438,7 +476,7 @@
                         body: JSON.stringify(payload)
                     });
 
-                    if (!response.ok) throw new Error("서버 통신 중 장애가 발생했습니다.");
+                    if (!response.ok) throw new Error("CORS_OR_NETWORK_ERROR");
                     const result = await response.json();
                     
                     if (result.status === "success") {
@@ -449,22 +487,32 @@
                         throw new Error(result.message || "추천 생성 도중 에러가 회신되었습니다.");
                     }
                 } catch (err) {
-                    showToast(err.message || "원격 시트 연동 실패. 주소를 확인하시거나 AI 직접 생성을 활용하세요.", "error");
+                    let errMsg = "원격 스프레드시트 서버와의 통신에 실패했습니다.";
+                    if (err.message === "CORS_OR_NETWORK_ERROR" || err.message.includes("Failed to fetch")) {
+                        errMsg = "Apps Script 배포 설정에서 '액세스 권한이 있는 사용자'를 '모든 사람(Anyone)'으로 설정했는지 꼭 확인해 주세요!";
+                    }
+                    showToast(errMsg, "error");
                     document.getElementById('placeholder').classList.remove('hidden');
                     document.getElementById('loader').classList.add('hidden');
                 }
             } else {
-                // 2. 브라우저 독점 AI 스마트 직접 빌드 모드 (Gemini API 직접 호출)
+                // 2. 브라우저 직접 생성 모드
                 document.getElementById('loader-title').innerText = "브라우저 다이렉트 AI 분석기를 구동합니다";
                 document.getElementById('loader-desc').innerText = "기록 연동 없이 Gemini 3.1 Flash가 실시간 지능형 JSON Schema 매핑으로 빠른 분석을 시도합니다.";
                 
                 try {
                     await runDirectAI(payload);
                 } catch (err) {
-                    showToast("실시간 추천 연산 과정 중 무효화 처리가 되었습니다. 다시 실행해 보세요.", "error");
-                    console.error(err);
                     document.getElementById('placeholder').classList.remove('hidden');
                     document.getElementById('loader').classList.add('hidden');
+                    
+                    if (err.message === "API_KEY_MISSING") {
+                        showToast("API 인증키가 유실되었습니다. 구글 시트 연동 스위치를 사용해주세요.", "error");
+                        openApiModal();
+                    } else {
+                        showToast("실시간 추천 연산 과정 중 무효화 처리가 되었습니다. 다시 실행해 보세요.", "error");
+                    }
+                    console.error(err);
                 }
             }
         }
@@ -485,8 +533,13 @@
 - 테마: ${inputs.styles}
 ${inputs.customMsg ? `- 사용자 특수 희망항목: ${inputs.customMsg}` : ''}`;
 
-            // Implicit API key using empty string. Canvas automatically populates this!
-            const apiKey = "";
+            // ⚠️ 깃허브 등 외부 호스팅 서버에 배포 시에는 구글 시트 기록 연동 스위치를 켜고 Apps Script 중계 서버를 통하는 것을 강력 권장합니다.
+            const apiKey = ""; 
+            
+            if (!apiKey) {
+                throw new Error("API_KEY_MISSING");
+            }
+
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
             const payload = {
@@ -711,9 +764,6 @@ ${inputs.customMsg ? `- 사용자 특수 희망항목: ${inputs.customMsg}` : ''
 
                 polylines.push(routeLine);
             }
-
-            // 대화창 리셋 및 맞춤 기본 첫 인사 바인딩
-            clearChat();
         }
 
         // 마커 개별 생성 유틸리티
@@ -782,7 +832,10 @@ ${inputs.customMsg ? `- 사용자 특수 희망항목: ${inputs.customMsg}` : ''
             const imagePrompt = `A retro vintage travel poster of ${region}, South Korea. Showcasing ${concept}, artistic cozy scenery illustration, warm pastel colors, nostalgic tourism advertising print style, high quality digital illustration, no messy text.`;
 
             try {
-                const apiKey = ""; // Canvas runtime auto-populates this
+                const apiKey = ""; 
+                if (!apiKey) {
+                    throw new Error("API_KEY_MISSING");
+                }
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
 
                 const payload = {
@@ -814,7 +867,7 @@ ${inputs.customMsg ? `- 사용자 특수 희망항목: ${inputs.customMsg}` : ''
 
             } catch (err) {
                 console.error(err);
-                showToast("기념 엽서를 획득하는 도중 에러가 있었습니다. 다시 시도해 주세요.", "error");
+                showToast("기념 엽서를 획득하는 도중 에러가 있었습니다. API 구동 환경을 확인해 주세요.", "error");
                 container.classList.add('hidden');
             }
         }
@@ -828,11 +881,13 @@ ${inputs.customMsg ? `- 사용자 특수 희망항목: ${inputs.customMsg}` : ''
             appendMessage(text, 'user');
             inputEl.value = '';
 
-            // 로딩 말풍선 표시
             const loaderId = appendMessage('생각하는 중...', 'guide', true);
 
             try {
-                const apiKey = ""; // Canvas runtime auto-injects
+                const apiKey = ""; 
+                if (!apiKey) {
+                    throw new Error("API_KEY_MISSING");
+                }
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
                 const systemInstruction = `당신은 사용자가 보고 있는 여행 일정을 완벽히 파악한 현지 가이드입니다. 
@@ -841,10 +896,8 @@ ${inputs.customMsg ? `- 사용자 특수 희망항목: ${inputs.customMsg}` : ''
 [참조 중인 현재 코스 계획서]:
 ${JSON.stringify(currentItineraryData)}`;
 
-                // 대화 내역 포맷팅
                 chatHistory.push({ role: 'user', parts: [{ text }] });
 
-                // 최근 6개 메시지만 컨텍스트 유지
                 const slicedHistory = chatHistory.slice(-6);
 
                 const payload = {
@@ -865,7 +918,6 @@ ${JSON.stringify(currentItineraryData)}`;
                 const result = await response.json();
                 const replyText = result.candidates[0].content.parts[0].text;
 
-                // 로딩 제거 후 답변 표기
                 document.getElementById(loaderId).remove();
                 appendMessage(replyText, 'guide');
                 
@@ -874,11 +926,10 @@ ${JSON.stringify(currentItineraryData)}`;
             } catch (err) {
                 console.error(err);
                 document.getElementById(loaderId).remove();
-                appendMessage("죄송합니다, 잠시 지리 정보 조회를 수행하지 못했습니다. 다시 질문해 주시겠어요?", 'guide');
+                appendMessage("죄송합니다, 중계 통신 설정이 켜져 있거나 직접 API 키가 확보되지 않아 대화가 유보되었습니다. 구글 스프레드시트 배포 환경을 이용해 주세요.", 'guide');
             }
         }
 
-        // 말풍선 추가 유틸리티
         function appendMessage(text, sender, isLoader = false) {
             const box = document.getElementById('chat-box');
             const msg = document.createElement('div');
@@ -898,11 +949,10 @@ ${JSON.stringify(currentItineraryData)}`;
             }
             
             box.appendChild(msg);
-            box.scrollTop = box.scrollHeight; // 항상 아래로 밀기
+            box.scrollTop = box.scrollHeight;
             return uid;
         }
 
-        // 대화방 클리어
         function clearChat() {
             const box = document.getElementById('chat-box');
             chatHistory = [];
@@ -914,7 +964,7 @@ ${JSON.stringify(currentItineraryData)}`;
             `;
         }
 
-        // API 연동 전 데모를 보여주는 유틸리티
+        // 데모 데이터 로드 함수
         function loadDemo() {
             showToast("경주 역사 로망 여행 데모 데이터를 불러왔습니다.", "success");
             
