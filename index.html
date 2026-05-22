@@ -229,7 +229,7 @@
     <script>
         // ⚠️ [필독] 구글 Apps Script 배포 완료 후 획득한 주소를 여기에 딱 한 번 입력해 주세요!
         // 이 주소는 깃허브에 노출되어도 API 키가 숨겨져 있어서 보안상 완벽하게 안전합니다.
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxv_zLr3HUiQLjcrp7g_hvhhmhKcI3U-BUW0qrw4RG2hgVfMIAWupJDcdoyaGNQWtwJ/exec";
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbytXqYvXwZtw6LDmsBjrFHnb2snLII4Oj1tPfFUMIxPzznzTWOp-_XjHBeslno-pLD9/exec";
 
         let map = null;
         let markers = [];
@@ -280,7 +280,7 @@
             }).addTo(map);
         }
 
-        // 백엔드 통신 및 데이터 처리
+        // 백엔드 통신 및 데이터 처리 (보안 우회 기술 - GET 프로토콜 사용)
         async function requestGuide() {
             const region = document.getElementById('targetRegion').value.trim();
             if (!region) {
@@ -312,10 +312,12 @@
             const payload = { region, duration, peopleCount, gender, ageGroup, styles };
 
             try {
-                const response = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' }, // CORS preflight 회피를 위한 단순 요청 구조
-                    body: JSON.stringify(payload)
+                // 💡 [CORS 해결의 핵심]: POST가 아닌 GET 방식으로 전송하여 OPTIONS preflight 원천 차단 및 세션 충돌 우회
+                const encodedData = encodeURIComponent(JSON.stringify(payload));
+                const requestUrl = `${GAS_WEB_APP_URL}?data=${encodedData}`;
+
+                const response = await fetch(requestUrl, {
+                    method: 'GET'
                 });
 
                 if (!response.ok) {
@@ -532,7 +534,7 @@
                 "budget": "약 380,000원",
                 "breakdown": "숙소 150,000원, 식사 및 카페 160,000원, 교통 및 입장료 70,000원",
                 "essentials": [
-                    { "item": "편안한 도보용 스니커즈", "reason": "대릉원 돌담길과 황리단길 산책을 위해 필수입니다." },
+                    { "item": "편안한 도보용 스니커즈", "reason": "대릉원 돌담길 and 황리단길 산책을 위해 필수입니다." },
                     { "item": "인생샷 전용 카메라/삼각대", "reason": "달빛에 비치는 황홀한 첨성대 야경을 흔들림 없이 수집하기에 요긴합니다." },
                     { "item": "보조배터리", "reason": "오랜 시간 외부 가이드 지도를 참조해야 하므로 스마트폰 배터리가 빠르게 닳을 수 있습니다." },
                     { "item": "필기용 작은 노트", "reason": "역사 명소에서 마주하는 재미있는 일화들을 즉시 아날로그로 기록하는 감성을 더해보세요." }
